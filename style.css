@@ -96,6 +96,25 @@ nav {
     color: var(--accent);
 }
 
+.lang-btn {
+    background: transparent;
+    border: 2px solid var(--text-secondary);
+    color: var(--text-primary);
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.lang-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
 .burger {
     display: none;
     cursor: pointer;
