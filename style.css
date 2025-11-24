@@ -186,7 +186,7 @@ nav {
 /* Hero */
 header { height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 20px; }
 .hero-title { font-size: 4rem; font-weight: 800; margin-bottom: 20px; opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s forwards 0.5s; }
-.highlight { color: var(--gui-accent); background: linear-gradient(120deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.highlight { color: var(--gui-accent); background: linear-gradient(120deg, #38bdf8, #818cf8); background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 .hero-subtitle { font-size: 1.5rem; color: var(--gui-text-sec); margin-bottom: 40px; opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s forwards 0.8s; }
 .hero-cta { opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s forwards 1.1s; }
 

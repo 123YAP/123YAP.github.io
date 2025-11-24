@@ -1,8 +1,14 @@
 /* --- TERMINAL LOGIC --- */
 
 const fileSystem = {
-    "about.txt": "I am a student at CentraleSupélec, passionate about software engineering and building innovative solutions. I love turning complex problems into simple, beautiful, and intuitive designs.",
-    "contact.txt": "Email: theophile.raybaud@student-cs.fr\nGitHub: https://github.com/123YAP\nLinkedIn: https://www.linkedin.com/in/théophile-raybaud",
+    "about.txt": {
+        en: "I am a student at CentraleSupélec, passionate about software engineering and building innovative solutions. I love turning complex problems into simple, beautiful, and intuitive designs.",
+        fr: "Je suis étudiant à CentraleSupélec, passionné par le génie logiciel et la création de solutions innovantes. J'aime transformer des problématiques complexes en expériences simples et élégantes."
+    },
+    "contact.txt": {
+        en: "Email: theophile.raybaud@student-cs.fr\nGitHub: https://github.com/123YAP\nLinkedIn: https://www.linkedin.com/in/théophile-raybaud",
+        fr: "Courriel : theophile.raybaud@student-cs.fr\nGitHub : https://github.com/123YAP\nLinkedIn : https://www.linkedin.com/in/théophile-raybaud"
+    },
     "projects": {
         type: "directory",
         files: {
@@ -30,8 +36,14 @@ const fileSystem = {
             }
         }
     },
-    "skills.txt": "Languages: Python, JavaScript, C++, HTML/CSS\nTools: Git, Docker, Linux, VS Code\nInterests: AI, Web Development, Robotics",
-    "secret.txt": "You found the secret file! nothing here though :)"
+    "skills.txt": {
+        en: "Languages: Python, JavaScript, C++, HTML/CSS\nTools: Git, Docker, Linux, VS Code\nInterests: AI, Web Development, Robotics",
+        fr: "Langages : Python, JavaScript, C++, HTML/CSS\nOutils : Git, Docker, Linux, VS Code\nIntérêts : IA, Développement Web, Robotique"
+    },
+    "secret.txt": {
+        en: "You found the secret file! Nothing here though :)",
+        fr: "Bravo, vous avez trouvé le fichier secret ! Mais il est vide pour l'instant :)"
+    }
 };
 
 const asciiArt = `
@@ -43,14 +55,62 @@ const asciiArt = `
     |_|  |_| |_|______\\____/|_|    |_|  |_|_____|______|______|
 `;
 
+let currentTerminalLang = 'en';
+let currentGuiLang = 'en';
+
+const terminalText = {
+    en: {
+        languageSet: "Language set to English.",
+        languageDefault: "Invalid selection. Defaulting to English.",
+        welcomeLine: "Welcome to <span class='animated-text'>Théophile</span> Raybaud's Portfolio v2.0",
+        helpHint: "Type 'help' to see available commands.",
+        guiHint: "Type 'gui' to switch to the graphical interface.",
+        help: "Available commands:\n  help      - Show this help message\n  ls        - List files and directories\n  cat [file]- Read a file\n  cd [dir]  - Change directory\n  open [prj]- Open a project link\n  clear     - Clear the terminal\n  whoami    - Display user info\n  gui       - Switch to Graphic User Interface\n  date      - Show current date/time",
+        whoami: "User: Guest\nRole: Visitor\nSystem: TheoOS v1.0",
+        guiMsg: "Starting GUI environment...",
+        dirError: "Error: Cannot read directory.",
+        catUsage: "Usage: cat [filename]",
+        cdError: dir => `cd: ${dir}: No such directory`,
+        catDirectory: name => `cat: ${name}: Is a directory`,
+        catMissing: name => `cat: ${name}: No such file`,
+        binaryDesc: name => `Binary file ${name} matches. Description:`,
+        useOpenHint: name => `Use 'open ${name}' to view/download.`,
+        openUsage: "Usage: open [project_name]",
+        opening: name => `Opening ${name}...`,
+        openMissing: name => `open: ${name}: Project not found`,
+        invalidCommand: cmd => `Command not found: ${cmd}`
+    },
+    fr: {
+        languageSet: "Langue définie sur le français.",
+        languageDefault: "Sélection invalide. Retour à l'anglais par défaut.",
+        welcomeLine: "Bienvenue dans le portfolio v2.0 de <span class='animated-text'>Théophile</span> Raybaud",
+        helpHint: "Tapez 'help' pour afficher les commandes.",
+        guiHint: "Tapez 'gui' pour passer à l'interface graphique.",
+        help: "Commandes disponibles :\n  help      - Affiche cette aide\n  ls        - Liste les fichiers et dossiers\n  cat [fichier] - Affiche le contenu d'un fichier\n  cd [dossier]  - Change de dossier\n  open [projet] - Ouvre un lien de projet\n  clear     - Nettoie le terminal\n  whoami    - Affiche les informations utilisateur\n  gui       - Lance l'interface graphique\n  date      - Affiche la date et l'heure",
+        whoami: "Utilisateur : Invité\nRôle : Visiteur\nSystème : TheoOS v1.0",
+        guiMsg: "Lancement de l'interface graphique...",
+        dirError: "Erreur : impossible de lire le répertoire.",
+        catUsage: "Utilisation : cat [fichier]",
+        cdError: dir => `cd : ${dir} : Répertoire introuvable`,
+        catDirectory: name => `cat : ${name} : Est un dossier`,
+        catMissing: name => `cat : ${name} : Fichier introuvable`,
+        binaryDesc: name => `Le binaire ${name} contient :`,
+        useOpenHint: name => `Utilisez 'open ${name}' pour afficher/télécharger.`,
+        openUsage: "Utilisation : open [projet]",
+        opening: name => `Ouverture de ${name}...`,
+        openMissing: name => `open : ${name} : Projet introuvable`,
+        invalidCommand: cmd => `Commande inconnue : ${cmd}`
+    }
+};
+
 const commands = {
-    help: "Available commands:\n  help      - Show this help message\n  ls        - List files and directories\n  cat [file]- Read a file\n  cd [dir]  - Change directory\n  open [prj]- Open a project link\n  clear     - Clear the terminal\n  whoami    - Display user info\n  gui       - Switch to Graphic User Interface\n  date      - Show current date/time",
-    whoami: "User: Guest\nRole: Visitor\nSystem: TheoOS v1.0",
+    help: () => terminalText[currentTerminalLang].help,
+    whoami: () => terminalText[currentTerminalLang].whoami,
     gui: () => {
         toggleGUI(true);
-        return "Starting GUI environment...";
+        return terminalText[currentTerminalLang].guiMsg;
     },
-    date: () => new Date().toString()
+    date: () => new Date().toLocaleString(currentTerminalLang === 'fr' ? 'fr-FR' : 'en-US')
 };
 
 let currentPath = []; 
@@ -85,6 +145,87 @@ const translations = {
         contact: { title: "Me contacter", desc: "Intéressé par une collaboration ou juste pour dire bonjour ?", built_with: "Fait avec créativité." }
     }
 };
+
+function updateGuiContent(lang) {
+    const locale = translations[lang] || translations.en;
+
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        const keys = key.split('.');
+        let value = locale;
+        keys.forEach(k => { if (value) value = value[k]; });
+        if (value && typeof value === 'string') element.textContent = value;
+    });
+
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) heroTitle.innerHTML = `${locale.hero.title_prefix} <span class="highlight">Théophile Raybaud</span>.`;
+
+    const heroSubtitle = document.querySelector('.hero-subtitle');
+    if (heroSubtitle) heroSubtitle.textContent = locale.hero.subtitle;
+
+    const heroBtns = document.querySelectorAll('.hero-cta .btn');
+    if (heroBtns[0]) heroBtns[0].textContent = locale.hero.cta_primary;
+    if (heroBtns[1]) heroBtns[1].textContent = locale.hero.cta_secondary;
+
+    const ecocartDesc = document.querySelector('.project-card.featured .project-desc');
+    if (ecocartDesc) ecocartDesc.textContent = locale.projects.ecocart.desc;
+    const ecocartTags = document.querySelectorAll('.project-card.featured .project-tags span');
+    if (ecocartTags[0]) ecocartTags[0].textContent = locale.projects.ecocart.tags[0];
+    if (ecocartTags[1]) ecocartTags[1].textContent = locale.projects.ecocart.tags[1];
+
+    const projectCards = document.querySelectorAll('.project-card');
+    if (projectCards[1]) {
+        projectCards[1].querySelector('h3').textContent = locale.projects.robot.title;
+        projectCards[1].querySelector('.project-desc').textContent = locale.projects.robot.desc;
+        const robotTags = projectCards[1].querySelectorAll('.project-tags span');
+        if (robotTags[0]) robotTags[0].textContent = locale.projects.robot.tags[0];
+        if (robotTags[1]) robotTags[1].textContent = locale.projects.robot.tags[1];
+        if (robotTags[2]) robotTags[2].textContent = locale.projects.robot.tags[2];
+    }
+
+    if (projectCards[2]) {
+        projectCards[2].querySelector('h3').textContent = locale.projects.portfolio.title;
+        projectCards[2].querySelector('.project-desc').textContent = locale.projects.portfolio.desc;
+        const portfolioTags = projectCards[2].querySelectorAll('.project-tags span');
+        if (portfolioTags[0]) portfolioTags[0].textContent = locale.projects.portfolio.tags[0];
+        if (portfolioTags[1]) portfolioTags[1].textContent = locale.projects.portfolio.tags[1];
+    }
+
+    document.querySelectorAll('.project-links .btn-small').forEach(btn => {
+        const icon = btn.querySelector('i') ? btn.querySelector('i').outerHTML : '';
+        if (btn.hasAttribute('download')) {
+            btn.innerHTML = `${icon} ${locale.projects.download_apk}`;
+        } else {
+            btn.innerHTML = `${icon} ${locale.projects.view_code}`;
+        }
+    });
+
+    const contactDesc = document.querySelector('#contact p');
+    if (contactDesc) contactDesc.textContent = locale.contact.desc;
+
+    const footer = document.querySelector('footer p');
+    if (footer) footer.innerHTML = `&copy; 2025 Théophile Raybaud. ${locale.contact.built_with}`;
+}
+
+function setAppLanguage(lang) {
+    if (!translations[lang]) lang = 'en';
+    currentGuiLang = lang;
+    currentTerminalLang = lang;
+    const langToggle = document.getElementById('lang-toggle');
+    if (langToggle) langToggle.textContent = lang === 'en' ? 'FR' : 'EN';
+    updateGuiContent(lang);
+}
+
+function languageHandler() {
+    const langToggle = document.getElementById('lang-toggle');
+    if (!langToggle) return;
+    langToggle.addEventListener('click', () => {
+        const nextLang = currentGuiLang === 'en' ? 'fr' : 'en';
+        setAppLanguage(nextLang);
+    });
+}
+
+window.setAppLanguage = setAppLanguage;
 
 // Shared/Global Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -136,8 +277,8 @@ function initTerminal() {
     setTimeout(() => {
         awaitingLanguage = true;
         printLine("Select Language / Choisir la langue:", "highlight");
-        printLine("[1] English");
-        printLine("[2] Français");
+        printLine("[1] English / Anglais");
+        printLine("[2] Français / French");
         printLine("");
     }, 2500);
 
@@ -148,14 +289,13 @@ function initTerminal() {
         banner.textContent = asciiArt;
         output.appendChild(banner);
         
-        // Animated Welcome Line
         const welcomeLine = document.createElement('div');
         welcomeLine.className = 'output-line';
-        welcomeLine.innerHTML = "Welcome to <span class='animated-text'>Théophile</span> Raybaud's Portfolio v2.0";
+        welcomeLine.innerHTML = terminalText[currentTerminalLang].welcomeLine;
         output.appendChild(welcomeLine);
 
-        printLine("Type 'help' to see available commands.", "highlight");
-        printLine("Type 'gui' to switch to the graphical interface.", "accent");
+        printLine(terminalText[currentTerminalLang].helpHint, "highlight");
+        printLine(terminalText[currentTerminalLang].guiHint, "accent");
         printLine("");
     }
 
@@ -165,19 +305,18 @@ function initTerminal() {
             
             if (awaitingLanguage) {
                 if (cmdRaw === '1' || cmdRaw.toLowerCase() === 'english' || cmdRaw.toLowerCase() === 'en') {
-                    // Set language to English (default)
-                    updateGUILanguage('en');
-                    printLine("Language set to English.", "accent");
-                } else if (cmdRaw === '2' || cmdRaw.toLowerCase() === 'francais' || cmdRaw.toLowerCase() === 'fr') {
-                    updateGUILanguage('fr');
-                    printLine("Langue définie sur Français.", "accent");
+                    setAppLanguage('en');
+                    printLine(terminalText.en.languageSet, "accent");
+                } else if (cmdRaw === '2' || cmdRaw.toLowerCase() === 'francais' || cmdRaw.toLowerCase() === 'fr' || cmdRaw.toLowerCase() === 'français') {
+                    setAppLanguage('fr');
+                    printLine(terminalText.fr.languageSet, "accent");
                 } else {
-                    printLine("Invalid selection. Defaulting to English.", "error");
-                    updateGUILanguage('en');
+                    setAppLanguage('en');
+                    printLine(`${terminalText.en.languageDefault} / ${terminalText.fr.languageDefault}`, "error");
                 }
-                
+
                 awaitingLanguage = false;
-                setTimeout(showBanner, 1000);
+                setTimeout(showBanner, 600);
                 input.value = '';
                 return;
             }
@@ -212,21 +351,6 @@ function initTerminal() {
             handleTabCompletion(input.value);
         }
     });
-
-    function updateGUILanguage(lang) {
-        const toggleBtn = document.getElementById('lang-toggle');
-        if (toggleBtn) {
-            // Manually trigger click if needed or just update text
-            // Simpler to re-use existing logic if we can expose it, 
-            // but for now let's just set textContent and call the internal update
-            // Note: translations object is global scope
-            toggleBtn.textContent = lang === 'en' ? 'FR' : 'EN'; // Toggle button shows target
-            // But the logic expects currentLang state.
-            // Let's just simulate a click if state mismatch? No, cleaner to call update.
-            // We will call a global function we'll expose.
-            if (window.setLanguage) window.setLanguage(lang);
-        }
-    }
 
     function getPathString() {
         return currentPath.length === 0 ? '~' : '~/' + currentPath.join('/');
@@ -274,14 +398,14 @@ function initTerminal() {
                         const item = dir[key];
                         const span = document.createElement('span');
                         span.textContent = key;
-                        if (typeof item === 'string') span.className = 'file';
+                        if (typeof item === 'string' || (typeof item === 'object' && !item.type)) span.className = 'file';
                         else if (item.type === 'directory') span.className = 'directory';
                         else if (item.type === 'executable') span.className = 'executable';
                         grid.appendChild(span);
                     });
                     output.appendChild(grid);
                 } else {
-                    printLine("Error: Cannot read directory.", "error");
+                    printLine(terminalText[currentTerminalLang].dirError, "error");
                 }
                 break;
             case 'cd':
@@ -295,35 +419,38 @@ function initTerminal() {
                     if (currentDir[target] && currentDir[target].type === 'directory') {
                         currentPath.push(target);
                     } else {
-                        printLine(`cd: ${target}: No such directory`, "error");
+                        printLine(terminalText[currentTerminalLang].cdError(target), "error");
                     }
                 }
                 updatePrompt();
                 break;
             case 'cat':
                 if (!args[0]) {
-                    printLine("Usage: cat [filename]", "highlight");
+                    printLine(terminalText[currentTerminalLang].catUsage, "highlight");
                     return;
                 }
                 const currentDirCat = getDirContent(currentPath);
                 const file = currentDirCat[args[0]];
                 if (file) {
-                    if (typeof file === 'string') {
-                        printLine(file); // Here is where we linkify
+                    if (typeof file === 'object' && !file.type) {
+                        const content = file[currentTerminalLang] || file.en || '';
+                        content.split('\n').forEach(line => printLine(line));
+                    } else if (typeof file === 'string') {
+                        printLine(file);
                     } else if (file.type === 'executable') {
-                        printLine(`Binary file ${args[0]} matches. Description:`, "highlight");
+                        printLine(terminalText[currentTerminalLang].binaryDesc(args[0]), "highlight");
                         printLine(file.desc);
-                        printLine("Use 'open " + args[0] + "' to view/download.", "accent");
+                        printLine(terminalText[currentTerminalLang].useOpenHint(args[0]), "accent");
                     } else {
-                        printLine(`cat: ${args[0]}: Is a directory`, "error");
+                        printLine(terminalText[currentTerminalLang].catDirectory(args[0]), "error");
                     }
                 } else {
-                    printLine(`cat: ${args[0]}: No such file`, "error");
+                    printLine(terminalText[currentTerminalLang].catMissing(args[0]), "error");
                 }
                 break;
             case 'open':
                 if (!args[0]) {
-                    printLine("Usage: open [project_name]", "highlight");
+                    printLine(terminalText[currentTerminalLang].openUsage, "highlight");
                     return;
                 }
                 const currentDirOpen = getDirContent(currentPath);
@@ -335,7 +462,7 @@ function initTerminal() {
                 }
 
                 if (foundPrj && foundPrj.type === 'executable') {
-                    printLine(`Opening ${args[0]}...`, "accent");
+                    printLine(terminalText[currentTerminalLang].opening(args[0]), "accent");
                     foundPrj.links.forEach(link => {
                         const a = document.createElement('a');
                         a.href = link.url;
@@ -347,11 +474,11 @@ function initTerminal() {
                         output.appendChild(document.createElement('br'));
                     });
                 } else {
-                     printLine(`open: ${args[0]}: Project not found`, "error");
+                     printLine(terminalText[currentTerminalLang].openMissing(args[0]), "error");
                 }
                 break;
             default:
-                printLine(`Command not found: ${cmd}`, "error");
+                printLine(terminalText[currentTerminalLang].invalidCommand(cmd), "error");
                 break;
         }
     }
@@ -362,13 +489,13 @@ function initTerminal() {
         
         // Linkify URLs and Emails
         if (typeof text === 'string') {
-            // Simple regex for URLs and Emails
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
             
             let html = text
                 .replace(urlRegex, '<a href="$1" target="_blank" class="link">$1</a>')
-                .replace(emailRegex, '<a href="mailto:$1" class="link">$1</a>');
+                .replace(emailRegex, '<a href="mailto:$1" class="link">$1</a>')
+                .replace(/\\n/g, '<br>');
             
             div.innerHTML = html;
         } else {
@@ -410,21 +537,9 @@ function initTerminal() {
 
 /* --- GUI FUNCTIONS --- */
 function initGUI() {
-    // Expose language setter
+    // Keep compatibility with previous setter
     window.setLanguage = (lang) => {
-        const toggleBtn = document.getElementById('lang-toggle');
-        if (toggleBtn) {
-            // If lang is 'en', button should show 'FR' (to switch to french)
-            // Wait, the button shows "FR" when in "EN" mode, and "EN" when in "FR" mode.
-            if (lang === 'en') {
-                toggleBtn.textContent = 'FR';
-                // Call update with 'en'
-                updateContent('en');
-            } else {
-                toggleBtn.textContent = 'EN';
-                updateContent('fr');
-            }
-        }
+        setAppLanguage(lang);
     };
 
     const navSlide = () => {
@@ -459,19 +574,6 @@ function initGUI() {
         });
     };
 
-    const languageHandler = () => {
-        const langToggle = document.getElementById('lang-toggle');
-        let currentLang = 'en';
-        
-        if (langToggle) {
-            langToggle.addEventListener('click', () => {
-                currentLang = currentLang === 'en' ? 'fr' : 'en';
-                langToggle.textContent = currentLang === 'en' ? 'FR' : 'EN';
-                updateContent(currentLang);
-            });
-        }
-    };
-    
     function updateContent(lang) {
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.getAttribute('data-i18n');
@@ -536,6 +638,7 @@ function initGUI() {
     navSlide();
     if (window.matchMedia("(pointer: fine)").matches) customCursor();
     languageHandler();
+    setAppLanguage(currentGuiLang);
 }
 
 function scrollReveal() {
