@@ -32,7 +32,8 @@ const translations = {
                 desc: "This website! A modern, responsive portfolio built with HTML, CSS, and JavaScript.",
                 tags: ["HTML/CSS", "Design"]
             },
-            view_code: "View Code"
+            view_code: "View Code",
+            download_apk: "Download APK"
         },
         contact: {
             title: "Get In Touch",
@@ -73,7 +74,8 @@ const translations = {
                 desc: "Ce site web ! Un portfolio moderne et responsive construit avec HTML, CSS et JavaScript.",
                 tags: ["HTML/CSS", "Design"]
             },
-            view_code: "Voir le code"
+            view_code: "Voir le code",
+            download_apk: "Télécharger l'APK"
         },
         contact: {
             title: "Me contacter",
@@ -202,9 +204,14 @@ const languageHandler = () => {
         
         // View Code Buttons
         document.querySelectorAll('.project-links .btn-small').forEach(btn => {
-            // Keep the icon
-            const icon = btn.querySelector('i').outerHTML;
-            btn.innerHTML = `${icon} ${translations[lang].projects.view_code}`;
+            // Check if it's a download button
+            if (btn.hasAttribute('download')) {
+                const icon = btn.querySelector('i').outerHTML;
+                btn.innerHTML = `${icon} ${translations[lang].projects.download_apk}`;
+            } else {
+                const icon = btn.querySelector('i').outerHTML;
+                btn.innerHTML = `${icon} ${translations[lang].projects.view_code}`;
+            }
         });
 
         // Contact
