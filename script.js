@@ -35,14 +35,12 @@ const fileSystem = {
 };
 
 const asciiArt = `
-  _______ _       __           _     _ _      
- |__   __| |      \\ \\         | |   (_) |     
-    | |  | |__  ___\\ \\  _ __  | |__  _| | ___ 
-    | |  | '_ \\/ _ \\\\ \\| '_ \\ | '_ \\| | |/ _ \\
-    | |  | | | |  __// / |_) || | | | | |  __/
-    |_|  |_| |_|\\___/_/| .__/ |_| |_|_|_|\\___|
-                       | |                    
-                       |_|                    
+  _______ _   _ ______ ____  _____  _    _ _____ _      ______ 
+ |__   __| | | |  ____/ __ \\|  __ \\| |  | |_   _| |    |  ____|
+    | |  | |_| | |__ | |  | | |__) | |__| | | | | |    | |__   
+    | |  |  _  |  __|| |  | |  ___/|  __  | | | | |    |  __|  
+    | |  | | | | |___| |__| | |    | |  | |_| |_| |____| |____ 
+    |_|  |_| |_|______\\____/|_|    |_|  |_|_____|______|______|
 `;
 
 const commands = {
@@ -123,6 +121,7 @@ function initTerminal() {
 
     let commandHistory = [];
     let historyIndex = -1;
+    let awaitingLanguage = false;
 
     document.addEventListener('click', (e) => {
         if (!document.body.classList.contains('gui-mode')) {
@@ -135,7 +134,11 @@ function initTerminal() {
     setTimeout(() => typeWriter(output, "Loading assets...\n"), 800);
     setTimeout(() => typeWriter(output, "Mounting file system...\n"), 1500);
     setTimeout(() => {
-        showBanner();
+        awaitingLanguage = true;
+        printLine("Select Language / Choisir la langue:", "highlight");
+        printLine("[1] English");
+        printLine("[2] Français");
+        printLine("");
     }, 2500);
 
     function showBanner() {
@@ -159,6 +162,26 @@ function initTerminal() {
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const cmdRaw = input.value.trim();
+            
+            if (awaitingLanguage) {
+                if (cmdRaw === '1' || cmdRaw.toLowerCase() === 'english' || cmdRaw.toLowerCase() === 'en') {
+                    // Set language to English (default)
+                    updateGUILanguage('en');
+                    printLine("Language set to English.", "accent");
+                } else if (cmdRaw === '2' || cmdRaw.toLowerCase() === 'francais' || cmdRaw.toLowerCase() === 'fr') {
+                    updateGUILanguage('fr');
+                    printLine("Langue définie sur Français.", "accent");
+                } else {
+                    printLine("Invalid selection. Defaulting to English.", "error");
+                    updateGUILanguage('en');
+                }
+                
+                awaitingLanguage = false;
+                setTimeout(showBanner, 1000);
+                input.value = '';
+                return;
+            }
+
             if (cmdRaw) {
                 commandHistory.push(cmdRaw);
                 historyIndex = commandHistory.length;
@@ -189,6 +212,21 @@ function initTerminal() {
             handleTabCompletion(input.value);
         }
     });
+
+    function updateGUILanguage(lang) {
+        const toggleBtn = document.getElementById('lang-toggle');
+        if (toggleBtn) {
+            // Manually trigger click if needed or just update text
+            // Simpler to re-use existing logic if we can expose it, 
+            // but for now let's just set textContent and call the internal update
+            // Note: translations object is global scope
+            toggleBtn.textContent = lang === 'en' ? 'FR' : 'EN'; // Toggle button shows target
+            // But the logic expects currentLang state.
+            // Let's just simulate a click if state mismatch? No, cleaner to call update.
+            // We will call a global function we'll expose.
+            if (window.setLanguage) window.setLanguage(lang);
+        }
+    }
 
     function getPathString() {
         return currentPath.length === 0 ? '~' : '~/' + currentPath.join('/');
@@ -271,7 +309,7 @@ function initTerminal() {
                 const file = currentDirCat[args[0]];
                 if (file) {
                     if (typeof file === 'string') {
-                        printLine(file);
+                        printLine(file); // Here is where we linkify
                     } else if (file.type === 'executable') {
                         printLine(`Binary file ${args[0]} matches. Description:`, "highlight");
                         printLine(file.desc);
@@ -321,7 +359,22 @@ function initTerminal() {
     function printLine(text, className = "") {
         const div = document.createElement('div');
         div.className = 'output-line ' + className;
-        div.textContent = text;
+        
+        // Linkify URLs and Emails
+        if (typeof text === 'string') {
+            // Simple regex for URLs and Emails
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+            
+            let html = text
+                .replace(urlRegex, '<a href="$1" target="_blank" class="link">$1</a>')
+                .replace(emailRegex, '<a href="mailto:$1" class="link">$1</a>');
+            
+            div.innerHTML = html;
+        } else {
+            div.textContent = text;
+        }
+        
         output.appendChild(div);
     }
 
@@ -357,6 +410,23 @@ function initTerminal() {
 
 /* --- GUI FUNCTIONS --- */
 function initGUI() {
+    // Expose language setter
+    window.setLanguage = (lang) => {
+        const toggleBtn = document.getElementById('lang-toggle');
+        if (toggleBtn) {
+            // If lang is 'en', button should show 'FR' (to switch to french)
+            // Wait, the button shows "FR" when in "EN" mode, and "EN" when in "FR" mode.
+            if (lang === 'en') {
+                toggleBtn.textContent = 'FR';
+                // Call update with 'en'
+                updateContent('en');
+            } else {
+                toggleBtn.textContent = 'EN';
+                updateContent('fr');
+            }
+        }
+    };
+
     const navSlide = () => {
         const burger = document.querySelector('.burger');
         const nav = document.querySelector('.nav-links');
@@ -400,61 +470,61 @@ function initGUI() {
                 updateContent(currentLang);
             });
         }
-
-        function updateContent(lang) {
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                const keys = key.split('.');
-                let value = translations[lang];
-                keys.forEach(k => { if (value) value = value[k]; });
-                if (value) element.textContent = value;
-            });
-
-            // Specifics
-            document.querySelector('.hero-title').innerHTML = `${translations[lang].hero.title_prefix} <span class="highlight">Théophile Raybaud</span>.`;
-            document.querySelector('.hero-subtitle').textContent = translations[lang].hero.subtitle;
-            const heroBtns = document.querySelectorAll('.hero-cta .btn');
-            heroBtns[0].textContent = translations[lang].hero.cta_primary;
-            heroBtns[1].textContent = translations[lang].hero.cta_secondary;
-
-            // Ecocart
-            document.querySelector('.project-card.featured .project-desc').textContent = translations[lang].projects.ecocart.desc;
-            const ecocartTags = document.querySelectorAll('.project-card.featured .project-tags span');
-            ecocartTags[0].textContent = translations[lang].projects.ecocart.tags[0];
-            ecocartTags[1].textContent = translations[lang].projects.ecocart.tags[1];
-
-            // Robot
-            const robotCard = document.querySelectorAll('.project-card')[1];
-            robotCard.querySelector('h3').textContent = translations[lang].projects.robot.title;
-            robotCard.querySelector('.project-desc').textContent = translations[lang].projects.robot.desc;
-            const robotTags = robotCard.querySelectorAll('.project-tags span');
-            robotTags[0].textContent = translations[lang].projects.robot.tags[0];
-            robotTags[1].textContent = translations[lang].projects.robot.tags[1];
-            robotTags[2].textContent = translations[lang].projects.robot.tags[2];
-
-            // Portfolio
-            const portfolioCard = document.querySelectorAll('.project-card')[2];
-            portfolioCard.querySelector('h3').textContent = translations[lang].projects.portfolio.title;
-            portfolioCard.querySelector('.project-desc').textContent = translations[lang].projects.portfolio.desc;
-            const portfolioTags = portfolioCard.querySelectorAll('.project-tags span');
-            portfolioTags[0].textContent = translations[lang].projects.portfolio.tags[0];
-            portfolioTags[1].textContent = translations[lang].projects.portfolio.tags[1];
-            
-            // Buttons
-            document.querySelectorAll('.project-links .btn-small').forEach(btn => {
-                if (btn.hasAttribute('download')) {
-                    const icon = btn.querySelector('i').outerHTML;
-                    btn.innerHTML = `${icon} ${translations[lang].projects.download_apk}`;
-                } else {
-                    const icon = btn.querySelector('i').outerHTML;
-                    btn.innerHTML = `${icon} ${translations[lang].projects.view_code}`;
-                }
-            });
-
-            document.querySelector('#contact p').textContent = translations[lang].contact.desc;
-            document.querySelector('footer p').innerHTML = `&copy; 2025 Théophile Raybaud. ${translations[lang].contact.built_with}`;
-        }
     };
+    
+    function updateContent(lang) {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            const keys = key.split('.');
+            let value = translations[lang];
+            keys.forEach(k => { if (value) value = value[k]; });
+            if (value) element.textContent = value;
+        });
+
+        // Specifics
+        document.querySelector('.hero-title').innerHTML = `${translations[lang].hero.title_prefix} <span class="highlight">Théophile Raybaud</span>.`;
+        document.querySelector('.hero-subtitle').textContent = translations[lang].hero.subtitle;
+        const heroBtns = document.querySelectorAll('.hero-cta .btn');
+        heroBtns[0].textContent = translations[lang].hero.cta_primary;
+        heroBtns[1].textContent = translations[lang].hero.cta_secondary;
+
+        // Ecocart
+        document.querySelector('.project-card.featured .project-desc').textContent = translations[lang].projects.ecocart.desc;
+        const ecocartTags = document.querySelectorAll('.project-card.featured .project-tags span');
+        ecocartTags[0].textContent = translations[lang].projects.ecocart.tags[0];
+        ecocartTags[1].textContent = translations[lang].projects.ecocart.tags[1];
+
+        // Robot
+        const robotCard = document.querySelectorAll('.project-card')[1];
+        robotCard.querySelector('h3').textContent = translations[lang].projects.robot.title;
+        robotCard.querySelector('.project-desc').textContent = translations[lang].projects.robot.desc;
+        const robotTags = robotCard.querySelectorAll('.project-tags span');
+        robotTags[0].textContent = translations[lang].projects.robot.tags[0];
+        robotTags[1].textContent = translations[lang].projects.robot.tags[1];
+        robotTags[2].textContent = translations[lang].projects.robot.tags[2];
+
+        // Portfolio
+        const portfolioCard = document.querySelectorAll('.project-card')[2];
+        portfolioCard.querySelector('h3').textContent = translations[lang].projects.portfolio.title;
+        portfolioCard.querySelector('.project-desc').textContent = translations[lang].projects.portfolio.desc;
+        const portfolioTags = portfolioCard.querySelectorAll('.project-tags span');
+        portfolioTags[0].textContent = translations[lang].projects.portfolio.tags[0];
+        portfolioTags[1].textContent = translations[lang].projects.portfolio.tags[1];
+        
+        // Buttons
+        document.querySelectorAll('.project-links .btn-small').forEach(btn => {
+            if (btn.hasAttribute('download')) {
+                const icon = btn.querySelector('i').outerHTML;
+                btn.innerHTML = `${icon} ${translations[lang].projects.download_apk}`;
+            } else {
+                const icon = btn.querySelector('i').outerHTML;
+                btn.innerHTML = `${icon} ${translations[lang].projects.view_code}`;
+            }
+        });
+
+        document.querySelector('#contact p').textContent = translations[lang].contact.desc;
+        document.querySelector('footer p').innerHTML = `&copy; 2025 Théophile Raybaud. ${translations[lang].contact.built_with}`;
+    }
     
     const termToggle = document.getElementById('term-toggle');
     if (termToggle) {

@@ -111,8 +111,28 @@ body:not(.gui-mode)::after {
 .link { color: var(--link-color); text-decoration: underline; cursor: pointer; }
 .link:hover { color: var(--accent-color); }
 
-.ascii-art { font-size: 10px; line-height: 10px; white-space: pre; color: var(--accent-color); margin-bottom: 20px; font-weight: bold; overflow-x: hidden; }
-@media (min-width: 768px) { .ascii-art { font-size: 14px; line-height: 14px; } }
+.ascii-art { 
+    font-size: 10px; 
+    line-height: 10px; 
+    white-space: pre; 
+    color: var(--accent-color); 
+    margin-bottom: 20px; 
+    font-weight: bold; 
+    overflow-x: hidden;
+    animation: asciiGlow 3s infinite alternate;
+}
+
+@media (min-width: 768px) { 
+    .ascii-art { 
+        font-size: 12px; 
+        line-height: 12px; 
+    } 
+}
+
+@keyframes asciiGlow {
+    0% { text-shadow: 0 0 5px var(--accent-color); opacity: 0.8; }
+    100% { text-shadow: 0 0 15px var(--accent-color), 0 0 5px var(--link-color); opacity: 1; }
+}
 
 .ls-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
 .file { color: var(--text-color); }
